@@ -1,0 +1,3 @@
+Important Commands
+
+pip list --format=freeze > requirements.txt
