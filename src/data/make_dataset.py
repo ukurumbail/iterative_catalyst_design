@@ -8,6 +8,7 @@ import openpyxl as op
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
+from src.models.constants import Constants
 
 
 @click.command()
@@ -70,13 +71,17 @@ def calc_reactor_metrics(cat,timepts=(0,240)):
 
     #perform regression
     reg = LinearRegression().fit(df["Time Since Start"].to_numpy().reshape(-1,1),df["Ln Yield"])
-    Y_1c = np.exp(reg.intercept_)/-reg.coef_[0]
+
+    Y0 = np.exp(reg.intercept_)
+    k_d = reg.coef_[0]
+    Y_1c = Y0/-k_d
 
     t0 = timepts[0]
     tf = timepts[1]
-    Y_pc = -Y_1c * (np.exp(reg.coef_[0]*tf)-np.exp(reg.coef_[0]*t0))
+    Y_pc = -Y_1c * (np.exp(k_d*tf)-np.exp(k_d*t0))
+    sqrtY0Y_pc = np.sqrt(Y0*Y_pc)
 
-    return (-reg.coef_[0],np.exp(reg.intercept_),Y_1c,Y_pc)
+    return (-k_d,Y0,Y_1c,Y_pc,sqrtY0Y_pc)
 
 def metal_to_pt_ratio(metal,name):
     """This function returns the molar ratio of a given metal to Pt in a catalyst based on its name.
@@ -154,9 +159,9 @@ def make(input_filepath,raw_data_path="../../data/raw"):
     df["Y0"] = [i[1] for i in performance_metrics]
     df["lifetime_yield"] = [i[2] for i in performance_metrics]
     df["Y_pc"] = [i[3] for i in performance_metrics]
+    df["sqrtY0Y_pc"] = [i[4] for i in performance_metrics]
 
-    metals = ["Pt","Sn","Ga","Fe","Cu","Ca","Mn","Zn"]
-    for metal in metals:
+    for metal in Constants().ALL_TESTED_METALS:
         df[metal] = [metal_to_pt_ratio(metal,name) for name in df["Catalyst"]]
 
     return df
@@ -179,7 +184,8 @@ def post_process(infile,outfile,cleanup=True,averaging =True):
                      "Pt1Sn4Ca4/Al2O3 (0.9)",
                      "Pt1Sn4Ca4/Al2O3 (1.9)",
                      "Pt1Sn1Ga1Fe1Cu1Ca1/Al2O3",
-                     "Pt1Sn4Ga1Fe4Cu4Ca4/Al2O3"
+                     "Pt1Sn4Ga1Fe4Cu4Ca4/Al2O3",
+                     "Pt1Fur"
                     ]
 
         df = df[~df["Catalyst"].isin(blacklist)]
@@ -198,13 +204,15 @@ def post_process(infile,outfile,cleanup=True,averaging =True):
     if averaging:
         print("Performing averaging")
         print(f'Currently {len(df)} catalyst samples in matrix.')
-        metals_to_avg_on = ["Pt","Sn","Ga","Fe","Cu","Ca","Mn","Zn"]
-        df_avg = df.groupby(metals_to_avg_on)[["k_d","Y0","lifetime_yield","Y_pc"]].mean().reset_index()
+        metals_to_avg_on = Constants().ALL_TESTED_METALS
+
+        df_avg = df.groupby(metals_to_avg_on)[Constants().METRICS].mean().reset_index()
         sd_pct_lifetime = .176
         sd_pct_Y_pc = .033/2
+        sd_pct_sqrtY0Y_pc = .033/2 #placeholder
         df_avg["lifetime_yield_sd"] = df_avg["lifetime_yield"]*sd_pct_lifetime #producing an estimated SD for a parameter
         df_avg["Y_pc_sd"] = df_avg["Y_pc"]*sd_pct_Y_pc #producing an estimated SD for a parameter
-
+        df_avg["sqrtY0Y_pc_sd"] = df_avg["sqrtY0Y_pc"]*sd_pct_sqrtY0Y_pc
         return df_avg
 
     
