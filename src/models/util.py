@@ -6,6 +6,26 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.gaussian_process.kernels import RBF
 from src.models.constants import Constants
 from scipy.stats import norm
+
+def get_Xy(df,metric='sqrtY0Y_pc',SD=False):
+
+    #generate X
+    X = df[Constants().METALS]
+    X=X.copy(deep=True)
+    diversity = X.astype(bool).sum(axis=1) #counts non-zero in a given row https://stackoverflow.com/questions/26053849/counting-non-zero-values-in-each-column-of-a-dataframe-in-python
+    loading = X.sum(axis=1) 
+    X['diversity']=diversity
+    X['loading']=loading
+
+    #generate y
+    if SD:
+        y = df[[metric,metric+'_SD']]
+    else:
+        y = df[metric]
+    y=y.copy(deep=True)
+    
+    return X,y
+
 def generate_grid(grid):
 	if grid == 'dense':
 		X_grid = np.mgrid[0:8:17j, 0:8:17j,0:8:17j,0:8:17j,0:8:17j].reshape(5,-1).T
@@ -91,7 +111,7 @@ def KNN_regressor(X_train,y_train,X_test,n_bootstrap=1000,n_split=20,weights='un
 
 
 
-def GP_regressor(X_train,y_train,X_test,n_bootstrap=1000,n_split=20,args=None):
+def GP_regressor(X_train,y_train,X_test,n_bootstrap=1000,n_split=20,args=None,verbose=True):
 	"""
 	Implements the Gaussian Process Regressor with selected options of weight. Bootstraps the training data (default=1000 samples)
 	and splits it into a chosen number of arrays. Returns the average and std dev of the predictions.
@@ -112,13 +132,14 @@ def GP_regressor(X_train,y_train,X_test,n_bootstrap=1000,n_split=20,args=None):
 	else:
 		raise NotImplementedError(f'Kernel {kernel_type} not implemented yet')
 	if use_sd_sample:
-		alpha = y[:,1]
+		alpha = y_train[:,1]
 	else:
 		alpha = 1e-10 #the init value of default GPR in sklearn
 
 	gp = GaussianProcessRegressor(kernel=kernel,n_restarts_optimizer=5,alpha=alpha)
 	gp.fit(X_train,y_train[:,0])
-	print("Trained Kernel: ",gp.kernel_)
+	if verbose:
+		print("Trained Kernel: ",gp.kernel_)
 
 	mu, sigma= gp.predict(X_test, return_std=True)
 

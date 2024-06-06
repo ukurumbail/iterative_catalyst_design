@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from src.models.constants import Constants
-
+import re
 
 @click.command()
 @click.argument('input_filepath', type=str)
@@ -92,7 +92,11 @@ def metal_to_pt_ratio(metal,name):
     name=name.lower()
     if len(name.split(metal))==1:
         return 0
-    elif len(name.split(metal))==2:
+    elif len(name.split(metal)[1])==1: #if metal of choice has an integer ratio and is last element
+        return int(name.split(metal)[1][0])
+    elif '.' == name.split(metal)[1][1]: #if metal of choice has a decimal ratio
+        return re.findall("\d+\.\d+", name.split(metal)[1])[0]
+    elif len(name.split(metal))==2: #if metal does not have a decimal ratio
         return int(name.split(metal)[1][0])
     else:
         raise ValueError(f'{name} has too many instances of {metal}')

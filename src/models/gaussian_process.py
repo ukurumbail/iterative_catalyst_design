@@ -70,6 +70,11 @@ def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_samp
 	df_pred.tail(n=100).to_csv(outfile_path)
 	print(f'Wrote 100 bottom predictions to {outfile_path}')
 
+	if grid == "coarse":
+		outfile_path = output_dir + "/" + output_filename + "_all.csv"
+		df_pred.head(n=1024).to_csv(outfile_path)
+		print(f'Wrote all predictions to {outfile_path}')
+
 	write_prediction_to_log(input_filepath,output_filename,"gp",{"grid_type":grid,
 																"kernel_type":kernel_type,
 																"metric":metric,
@@ -83,6 +88,8 @@ def get_elements(columns):
 			element(name) #check for error
 			elements.append(name)
 		except exc.NoResultFound:
+			continue
+		except ValueError:
 			continue
 	return elements
 
