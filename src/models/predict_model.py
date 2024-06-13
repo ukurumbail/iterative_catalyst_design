@@ -17,7 +17,7 @@ def write_prediction_to_log(input_file,output_file,model_type,params):
 		new_row[f'Model_Param_Name_{i}'] = key
 		new_row[f'Model_Param_Val_{i}'] = val
 
-	df = df.append(new_row,ignore_index=True)
+	df = pd.concat([df,new_row],ignore_index=True)
 
 	print(f'Logging prediction to ./models/predictions/prediction_log.csv with id {df["Prediction_ID"].iloc[-1]}')
 	df.to_csv("./models/predictions/prediction_log.csv",index=False)
