@@ -18,7 +18,8 @@ import re
 @click.option('--preprocess', default=True, type=bool)
 @click.option('--cleanup', default=False, type=bool)
 @click.option('--averaging', default=False, type= bool)
-def main(input_filepath, output_filename,data_path,preprocess,cleanup,averaging):
+@click.option('--no_tube_2', default=False, type= bool)
+def main(input_filepath, output_filename,data_path,preprocess,cleanup,averaging,no_tube_2):
     """ Runs data processing scripts to turn raw data from (../raw) into
         cleaned data ready to be analyzed (saved in ../processed).
         Options: 
@@ -42,7 +43,7 @@ def main(input_filepath, output_filename,data_path,preprocess,cleanup,averaging)
 
     if cleanup:
         cleanup_file_path = data_path + "/processed/" + "2-cleanedup_"+ output_filename + ".csv"
-        df_cleanup = post_process(input_filepath,cleanup_file_path,cleanup=True,averaging =False)
+        df_cleanup = post_process(input_filepath,cleanup_file_path,cleanup=True,averaging =False,no_tube_2=no_tube_2)
         print(f'After stripping, {len(df_cleanup)} catalyst samples in matrix.')
         print(f'Writing to {cleanup_file_path}')
         df_cleanup.to_csv(cleanup_file_path)
@@ -90,6 +91,11 @@ def metal_to_pt_ratio(metal,name):
     """
     metal=metal.lower()
     name=name.lower()
+    if "(#1)" in name or "(#2)" in name or "(#3)" in name:
+
+        name_old = name
+        name = name[:-5]
+        print(f'Changing {name_old} to {name}')
     if len(name.split(metal))==1:
         return 0
     elif len(name.split(metal)[1])==1: #if metal of choice has an integer ratio and is last element
@@ -170,7 +176,7 @@ def make(input_filepath,raw_data_path="../../data/raw"):
 
     return df
     
-def post_process(infile,outfile,cleanup=True,averaging =True):
+def post_process(infile,outfile,cleanup=True,averaging =True,no_tube_2=False):
     df = pd.read_csv(infile,index_col=0)
     if cleanup:
         print("Performing data cleanup")
@@ -189,10 +195,16 @@ def post_process(infile,outfile,cleanup=True,averaging =True):
                      "Pt1Sn4Ca4/Al2O3 (1.9)",
                      "Pt1Sn1Ga1Fe1Cu1Ca1/Al2O3",
                      "Pt1Sn4Ga1Fe4Cu4Ca4/Al2O3",
-                     "Pt1Fur"
+                     "Pt1Fur",
+                     "New SiC (07/05)"
                     ]
 
         df = df[~df["Catalyst"].isin(blacklist)]
+
+        #remove tube_2
+        if no_tube_2:
+            print("Removing Tube 2 runs")
+            df = df[df["Tube"] != 2]
 
         #Remove specific catalysts that are outliers
         idxs = []
