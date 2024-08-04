@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.gaussian_process.kernels import RBF
+from sklearn.gaussian_process.kernels import RBF,WhiteKernel
 from src.models.constants import Constants
 from scipy.stats import norm
 
@@ -129,12 +129,16 @@ def GP_regressor(X_train,y_train,X_test,n_bootstrap=1000,n_split=20,args=None,ve
 
 	if kernel_type == 'RBF':
 		kernel = 1*RBF(length_scale=1.0,length_scale_bounds=(1e-2,1e2))
+		if use_sd_sample:
+			alpha = y_train[:,1]
+		else:
+			alpha = 1e-10 #the init value of default GPR in sklearn
+	elif kernel_type == 'RBF+White':
+		kernel = 1*RBF(length_scale=1.0,length_scale_bounds=(1e-2,1e2))+WhiteKernel(noise_level=1, noise_level_bounds=(1e-5, 1e1))
+		alpha = 0
 	else:
 		raise NotImplementedError(f'Kernel {kernel_type} not implemented yet')
-	if use_sd_sample:
-		alpha = y_train[:,1]
-	else:
-		alpha = 1e-10 #the init value of default GPR in sklearn
+
 
 	gp = GaussianProcessRegressor(kernel=kernel,n_restarts_optimizer=5,alpha=alpha)
 	gp.fit(X_train,y_train[:,0])
@@ -146,9 +150,15 @@ def GP_regressor(X_train,y_train,X_test,n_bootstrap=1000,n_split=20,args=None,ve
 	return mu, sigma
 
 
-def generate_prediction_array(X_grid,EI_out):
+def generate_prediction_array(X_grid,EI_out,includes_tube=False):
 	explore,exploit,mu,sigma,Z,pdf,cdf = EI_out
-	df_pred = pd.DataFrame(X_grid,columns=Constants().METALS)
+	if includes_tube:
+		columns = ['Tube']
+	else:
+		columns = []
+	for i in Constants().METALS:
+		columns.append(i)
+	df_pred = pd.DataFrame(X_grid,columns=columns)
 	df_pred["Explore"] = explore
 	df_pred["Exploit"] = exploit
 	df_pred["EI_Score"] = df_pred["Explore"] + df_pred["Exploit"]

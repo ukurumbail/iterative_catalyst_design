@@ -21,12 +21,13 @@ from src.models.constants import Constants
 @click.argument('input_filepath', type=click.Path(exists=True))
 @click.argument('output_filename', type=str)
 @click.option('--output_dir', default="./models/predictions",type=click.Path(exists=True))
-@click.option('--kernel_type', default="RBF",type=str)
+@click.option('--kernel_type', default="RBF+White",type=str)
 @click.option('--seed', default=1,type=int)
 @click.option('--use_sd_sample',default=False,type=bool)
 @click.option('--metric',default='sqrtY0Y_pc',type=str)
 @click.option('--grid',default='coarse',type=str)
-def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_sample,metric,grid):
+@click.option('--tube',default=1,type=int)
+def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_sample,metric,grid,tube):
 	metals = Constants().METALS
 	X_grid = generate_grid(grid)
 	X_grid = pd.DataFrame(X_grid,columns=metals)
@@ -34,16 +35,21 @@ def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_samp
 	loading = X_grid.sum(axis=1)
 	X_grid['diversity'] = diversity + 1.0 #include Pt
 	X_grid['loading'] = loading + 1.0 #include Pt
+	X_grid['Tube'] = np.full((X_grid.shape[0],1),tube)
+	X_grid = X_grid[["Tube","Sn","Ga","Fe","Cu","Ca","diversity","loading"]]
 	print(X_grid.head())
 	X_grid = X_grid.to_numpy()
 	df = pd.read_csv(input_filepath,index_col=0)
 
-	df_features,df_targets = featurize(df)
+	df["diversity"] = df[["Pt","Sn","Ga","Fe","Cu","Ca"]].astype(bool).sum(axis=1)
+	df["loading"] = df[["Pt","Sn","Ga","Fe","Cu","Ca"]].sum(axis=1)
 
-	X = df_features.to_numpy()
-	y = df_targets[[metric,f'{metric}_sd']].to_numpy()
+	X = df[["Tube","Sn","Ga","Fe","Cu","Ca","diversity","loading"]].to_numpy()
+	y = df[metric].to_numpy()
+	y = np.hstack((y.reshape(-1,1),np.zeros((y.shape[0],1))))
+	print(y.shape)
 
-	# (X_train,y_train),(X_val,y_val),(X_test),(y_test) = split(X,y,seed=seed)
+
 	X_train,y_train = X,y
 
 	print("Training and running model")
@@ -51,11 +57,11 @@ def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_samp
 
 
 	t0 = time.time()
-	EI_out = EI(X,y,X_grid,pred_type='GPR',surrogate_args={'kernel_type':kernel_type,'seed':seed,'use_sd_sample':use_sd_sample})
+	EI_out = EI(X_train,y_train,X_grid,pred_type='GPR',surrogate_args={'kernel_type':kernel_type,'seed':seed,'use_sd_sample':use_sd_sample})
 	t1 = time.time()
 	print(f'EI Run Time {t1-t0:.5} seconds')
 
-	df_pred = generate_prediction_array(X_grid[:,:-2],EI_out) #remove diversity, loading
+	df_pred = generate_prediction_array(X_grid[:,:-2],EI_out,includes_tube=True) #remove diversity, loading
 
 
 
@@ -79,7 +85,8 @@ def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_samp
 																"kernel_type":kernel_type,
 																"metric":metric,
 																"seed":seed,
-																"use_sd_sample":use_sd_sample})
+																"use_sd_sample":use_sd_sample,
+																"tube":tube})
 
 def get_elements(columns):
 	elements = []

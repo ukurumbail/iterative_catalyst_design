@@ -193,10 +193,16 @@ def post_process(infile,outfile,cleanup=True,averaging =True,no_tube_2=False):
                      "Pt1Sn4Ca4/Al2O3 (0.3)",
                      "Pt1Sn4Ca4/Al2O3 (0.9)",
                      "Pt1Sn4Ca4/Al2O3 (1.9)",
+                     "Pt1Sn4Ca4(#3,75-180 um)",
+                     "Pt1Sn4Ca4(#3,425-600 um)",
                      "Pt1Sn1Ga1Fe1Cu1Ca1/Al2O3",
                      "Pt1Sn4Ga1Fe4Cu4Ca4/Al2O3",
                      "Pt1Fur",
-                     "New SiC (07/05)"
+                     "New SiC (07/05)",
+                     "0.5Pt6In/Al2O3",
+                     "3Pt6In/Al2O3",
+                     "3Pt9In/Al2O3",
+                     "3Pt3In/Al2O3"                     
                     ]
 
         df = df[~df["Catalyst"].isin(blacklist)]

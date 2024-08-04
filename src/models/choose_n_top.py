@@ -32,26 +32,34 @@ def main(input_filepath, output_filename,output_dir,algorithm,n):
 		df_top_n.to_csv(output_dir+"/"+output_filename+".csv")
 		print(f'Wrote selections to {output_dir+"/"+output_filename+".csv"}.')
 
-def choose_max_dist(n,df,random=False, indices = ['Sn','Ga','Fe','Cu','Ca']):
+def choose_max_dist(n,df,random=False, features = ['Sn','Ga','Fe','Cu','Ca'],score='EI_Score'):
     if random:
+        print("Random Choices")
         chosen_idx = df.index[np.random.randint(0,len(df),size=n)]
         return df.loc[chosen_idx,:]
     else:
-        dist_arr = df[indices].to_numpy()
-        combos = combinations([i for i in range(dist_arr.shape[0])],n)
-        best_combo = None
-        max_dist = 0
-        for combo in combos:
-            combo = np.array(combo)
-            arr = dist_arr[combo]
-            dist = sum(pairwise_distances(arr)[0,:])
-            if dist > max_dist:
-                max_dist = dist
-                best_combo = combo
-                print(f'New largest distance: {dist}')
+        scores = df[score].to_numpy()
+        indices = []
+        indices.append(np.argmin(-1*scores)) #add top EI score
+        dist_arr = pairwise_distances(df[features].to_numpy()) #pairwise distances from sklearn
+        print(dist_arr)
+        for i in range(n-1): #for each of the n top catalyst you want
 
-            
-        return df.iloc[best_combo,:]
+            curr_top_idx = None
+            curr_top_dist = -1
+            np_indices = np.array(indices)
+            time0=time.time()
+            for j in range(scores.shape[0]): #for each catalyst in dataset
+                dist = np.sum(dist_arr[j,np_indices])
+                if dist > curr_top_dist and j not in indices:
+                    curr_top_idx=j
+                    curr_top_dist=dist
+            indices.append(curr_top_idx)
+            print(f'Catalyst {curr_top_idx} added with total distance of {curr_top_dist}')
+            print(f'Current indices: {indices}')
+            print(f'Elapsed Time: {time.time()-time0:.3}')
+        return np.array(indices)
+
 def get_n_best(n,df):
     print(f'n: {n}')
     n_found=0

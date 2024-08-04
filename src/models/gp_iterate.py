@@ -37,49 +37,70 @@ def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_samp
 	print(X_grid.head())
 	X_grid = X_grid.to_numpy()
 	df = pd.read_csv(input_filepath,index_col=0)
-
 	df_features,df_targets = featurize(df)
 
 	X = df_features.to_numpy()
 	y = df_targets[[metric,f'{metric}_sd']].to_numpy()
 
-	# (X_train,y_train),(X_val,y_val),(X_test),(y_test) = split(X,y,seed=seed)
 	X_train,y_train = X,y
 
-	print("Training and running model")
-	print(f'Number of features: {X_train.shape[1]} Number of Training Points: {X_train.shape[0]}')
+	top_preds = None
+	for i in range(6):
 
 
-	t0 = time.time()
-	EI_out = EI(X,y,X_grid,pred_type='GPR',surrogate_args={'kernel_type':kernel_type,'seed':seed,'use_sd_sample':use_sd_sample})
-	t1 = time.time()
-	print(f'EI Run Time {t1-t0:.5} seconds')
-
-	df_pred = generate_prediction_array(X_grid[:,:-2],EI_out) #remove diversity, loading
+		print("Training and running model")
+		print(f'Number of features: {X.shape[1]} Number of Training Points: {X.shape[0]}')
 
 
+		t0 = time.time()
+		EI_out = EI(X,y,X_grid,pred_type='GPR',surrogate_args={'kernel_type':kernel_type,'seed':seed,'use_sd_sample':use_sd_sample})
+		t1 = time.time()
+		print(f'EI Run Time {t1-t0:.5} seconds')
 
-	n=20
-	print(f'Successfully predicted catalysts. Top {n} catalysts displayed below.')
-	print(df_pred.head(n=n))
+		df_pred = generate_prediction_array(X_grid[:,:-2],EI_out) #remove diversity, loading
+		if top_preds is None:
+			top_preds = pd.DataFrame(columns=df_pred.columns)
 
-	outfile_path = output_dir + "/" + output_filename + "_top.csv"
-	df_pred.head(n=1000).to_csv(outfile_path)
-	print(f'Wrote 1000 top predictions to {outfile_path}')
-	outfile_path = output_dir + "/" + output_filename + "_bottom.csv"
-	df_pred.tail(n=1000).to_csv(outfile_path)
-	print(f'Wrote 1000 bottom predictions to {outfile_path}')
+		top = df_pred.iloc[0]
+		top_preds = pd.concat([top_preds,top.to_frame().T],ignore_index=True)
+		print(f'Top Choice: Pt1Sn{top['Sn']}Ga{top['Ga']}Fe{top['Fe']}Cu{top['Cu']}Ca{top['Ca']}')
+		print(f'Mu: {top['mu']:.3} Sigma: {top['sigma']:.3} EI: {top['EI_Score']:.3}')
 
-	if grid == "coarse":
-		outfile_path = output_dir + "/" + output_filename + "_all.csv"
-		df_pred.head(n=1024).to_csv(outfile_path)
-		print(f'Wrote all predictions to {outfile_path}')
+		df.loc[len(df.index)] = [1,top['Sn'],top['Ga'],top['Fe'],top['Cu'],top['Ca'],0,0,
+		None,None,None,None,top['mu'],None,None,.000001] #add top prediction to data
+		df_features,df_targets = featurize(df)
 
-	write_prediction_to_log(input_filepath,output_filename,"gp",{"grid_type":grid,
-																"kernel_type":kernel_type,
-																"metric":metric,
-																"seed":seed,
-																"use_sd_sample":use_sd_sample})
+		X = df_features.to_numpy()
+		y = df_targets[[metric,f'{metric}_sd']].to_numpy()
+
+		X_train,y_train = X,y
+
+
+
+
+	print(top_preds.head(n=6))
+
+	print(df.tail(n=10))
+	# n=10
+	# print(f'Successfully predicted catalysts. Top {n} catalysts displayed below.')
+	# print(df_pred.head(n=n))
+	# outfile_path = output_dir + "/" + output_filename + "_top.csv"
+	# df_pred.head(n=100).to_csv(outfile_path)
+	# print(f'Wrote 100 top predictions to {outfile_path}')
+	# outfile_path = output_dir + "/" + output_filename + "_bottom.csv"
+	# df_pred.tail(n=100).to_csv(outfile_path)
+	# print(f'Wrote 100 bottom predictions to {outfile_path}')
+
+	# if grid == "coarse":
+	# 	outfile_path = output_dir + "/" + output_filename + "_all.csv"
+	# 	df_pred.head(n=1024).to_csv(outfile_path)
+	# 	print(f'Wrote all predictions to {outfile_path}')
+
+	# write_prediction_to_log(input_filepath,output_filename,"gp",{"grid_type":grid,
+	# 															"kernel_type":kernel_type,
+	# 															"metric":metric,
+	# 															"seed":seed,
+	# 															"use_sd_sample":use_sd_sample})
 
 def get_elements(columns):
 	elements = []

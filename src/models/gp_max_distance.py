@@ -15,6 +15,7 @@ from dotenv import find_dotenv, load_dotenv
 from src.models.predict_model import write_prediction_to_log
 from src.models.util import generate_grid,split,EI,generate_prediction_array
 from src.models.constants import Constants
+from src.models.choose_n_top import choose_max_dist
 #get input file
 
 @click.command()
@@ -46,7 +47,7 @@ def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_samp
 	# (X_train,y_train),(X_val,y_val),(X_test),(y_test) = split(X,y,seed=seed)
 	X_train,y_train = X,y
 
-	print("Training and running model")
+	print("Training and running model GP Max Distance")
 	print(f'Number of features: {X_train.shape[1]} Number of Training Points: {X_train.shape[0]}')
 
 
@@ -56,30 +57,35 @@ def main(input_filepath, output_filename,output_dir,kernel_type,seed,use_sd_samp
 	print(f'EI Run Time {t1-t0:.5} seconds')
 
 	df_pred = generate_prediction_array(X_grid[:,:-2],EI_out) #remove diversity, loading
-
+	n_top=1000
+	print(f'Successfully predicted catalysts. Beginning distance maximization of top {n_top} catalysts.')
+	top_sets=choose_max_dist(5,df_pred.iloc[:n_top,:])
+	print(df_pred.loc[df_pred.index[top_sets]])
+	# print(combos)
+	# print(distances)
 
 
 	n=20
 	print(f'Successfully predicted catalysts. Top {n} catalysts displayed below.')
 	print(df_pred.head(n=n))
 
-	outfile_path = output_dir + "/" + output_filename + "_top.csv"
-	df_pred.head(n=1000).to_csv(outfile_path)
-	print(f'Wrote 1000 top predictions to {outfile_path}')
-	outfile_path = output_dir + "/" + output_filename + "_bottom.csv"
-	df_pred.tail(n=1000).to_csv(outfile_path)
-	print(f'Wrote 1000 bottom predictions to {outfile_path}')
+	# outfile_path = output_dir + "/" + output_filename + "_top.csv"
+	# df_pred.head(n=100).to_csv(outfile_path)
+	# print(f'Wrote 100 top predictions to {outfile_path}')
+	# outfile_path = output_dir + "/" + output_filename + "_bottom.csv"
+	# df_pred.tail(n=100).to_csv(outfile_path)
+	# print(f'Wrote 100 bottom predictions to {outfile_path}')
 
-	if grid == "coarse":
-		outfile_path = output_dir + "/" + output_filename + "_all.csv"
-		df_pred.head(n=1024).to_csv(outfile_path)
-		print(f'Wrote all predictions to {outfile_path}')
+	# if grid == "coarse":
+	# 	outfile_path = output_dir + "/" + output_filename + "_all.csv"
+	# 	df_pred.head(n=1024).to_csv(outfile_path)
+	# 	print(f'Wrote all predictions to {outfile_path}')
 
-	write_prediction_to_log(input_filepath,output_filename,"gp",{"grid_type":grid,
-																"kernel_type":kernel_type,
-																"metric":metric,
-																"seed":seed,
-																"use_sd_sample":use_sd_sample})
+	# write_prediction_to_log(input_filepath,output_filename,"gp",{"grid_type":grid,
+	# 															"kernel_type":kernel_type,
+	# 															"metric":metric,
+	# 															"seed":seed,
+	# 															"use_sd_sample":use_sd_sample})
 
 def get_elements(columns):
 	elements = []
