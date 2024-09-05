@@ -24,7 +24,9 @@ This will produce output files under ./data/processed with the names "1-preproce
 Once you have processed data you can then make predictions by running each model script. Examples are below:
 
 python ./src/models/knn.py "./data/processed/3-averaged_Round8-Standardized.csv" knn-dense-round-9-predictions --grid=dense
+
 python ./src/models/gaussian_process.py "./data/processed/3-averaged_Round8-Standardized.csv" gp-dense-round-9-predictions --grid=dense
+
 python ./src/models/gp_white_kernel.py "./data/processed/2-cleanedup_Round8-Standardized.csv" go-white-dense-round-9-predictions --grid=dense
 
 All other models in the project can be ignored / aren't supported. knn and gaussian_process used averaged data (file #3 above) whereas gp_white_kernel uses cleaned up data (file #2 above). This will output model predictions at ./models/predictions along with giving you some details in the command line interface. 
