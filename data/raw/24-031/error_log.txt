@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\Users\Hermans Group\Documents\UK\auto_rxn\auto_rxn\auto_rxn.py", line 304, in run_rxn
+    await task
+  File "C:\Users\Hermans Group\Documents\UK\auto_rxn\auto_rxn\auto_rxn.py", line 244, in run_inner_rxn_loop
+    rxn.set_emergency_sps()
+  File "C:\Users\Hermans Group\Documents\UK\auto_rxn\auto_rxn\auto_rxn.py", line 178, in set_emergency_sps
+    raise IOError("Emergency setpoints set due to IO Error!")
+OSError: Emergency setpoints set due to IO Error!

@@ -1,0 +1,215 @@
+{	
+	"main" : {
+		"GC Module Name" : "inficon_gc",
+		"Subdevices": {},
+		"mock" : "False"},
+	"logger" : {
+		"log_interval (s)" : 5,
+		"Subdevices" :{}
+		},
+	"inficon_gc" : {
+		"GC Module Name" : "inficon_gc",
+		"IP Address" : "169.254.1.1",
+		"Default Method" : "UK_C3DH_12-07-23",
+		"Type" : "GC",
+		"Subdevices" :{
+			"Number of Samples" : {"Max Setting" : "None","Analysis Device Type" : "None","Dynamicity":"Static"},
+			"Method Name" : {"Max Setting" : "None","Analysis Device Type" : "None","Dynamicity":"Static"},
+			"Delay Time" : {"Max Setting" : "None","Analysis Device Type" : "None","Dynamicity":"Static"},
+			"Injection Offset" : {"Max Setting" : "None","Analysis Device Type" : "None","Dynamicity":"Static"}
+			},
+		"async":0
+		},
+
+	"eurotherm_3216_async" : {
+		"port" : "COM8",
+		"address" : 1,
+		"baudrate" : 9600,
+		"timeout" : 1,
+		"Test Register" : 131,
+		"Test Value" : 1,
+		"Subdevices" : {
+			"Furnace Temp" : {"Type" : "Float",
+							  "SP Write Address" : 32772,
+							  "SP Read Address" : 32772,
+							  "PV Read Address" : 32770,
+							   "Max Setting" : 800,
+							   "Change Wait Time" : 4200,
+							   "Dev Lim" : 800,
+							   "Dev Type" : "Change from previous",
+								"Analysis Device Type" : "Reactor Temp",
+								"T Correction" : 21,"Dynamicity":"Static"},
+			"Ramp Rate" : {   "Type" : "Long",
+							  "SP Write Address" : "None",
+							  "SP Read Address" : "None",
+							  "PV Read Address" : "None",
+							   "Max Setting" : 200,
+							   "Change Wait Time" : 5,
+							   "Dev Lim" : 0.01,
+							   "Dev Type" : "Within setpt tolerance",
+								"Analysis Device Type" : "None","Dynamicity":"Static"},
+			"Reactor Temp" : {"Type" : "Float",
+							  "port" : "COM5",
+							  "baudrate" : 38400,
+							  "SP Write Address" : "None",
+							  "SP Read Address" : "None",
+							  "PV Read Address" : "None",
+							   "Max Setting" : 800,
+							   "Change Wait Time" : 600,
+							   "Dev Lim" : 3,
+							   "Dev Type" : "Do not check for emergency",
+							   "Expected dT/dt" : 0.165,
+							   "PID_params" : [1,1,0],
+							   "PID_sample_time" : 15,
+							   "PID_max_movement" : 5,
+								"Analysis Device Type" : "None","Dynamicity":"Static"},
+			"PV Offset" : { "Type" : "Float",
+						    "SP Write Address" : 33050,
+						    "SP Read Address" : 33050,
+						    "PV Read Address" : 33050,
+						    "Max Setting" : 100,
+						    "Change Wait Time" : 1,
+						    "Dev Lim" : 1,
+						    "Dev Type" : "Within setpt tolerance",
+						    "Analysis Device Type" : "None",
+						    "Trigger Threshold" : 1,
+						    "Dynamicity" : "Static"
+			},
+			"Test" : {"Register" : 131, "Value" : 1,"Max Setting" : "None","Analysis Device Type" : "None","Dynamicity":"Static"}
+			},
+		"async":1
+		},
+	"alicat_bb9" : {
+		"port" : "COM4",
+		"baudrate" : 19200,
+		"Wait Time (sec)" : 10,
+		"Subdevices" : {
+			"Bulk SP" : {
+				"node":"Not Applicable",
+				"Max Setting" : 20,
+				"Correction Factor" : 1,
+				"Dev Lim" : 2,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static",
+			"active_flow_controller":0},
+			"2" : {
+				"node" : "H",
+				"Max Setting" : 20,
+				"Correction Factor" : 1,
+				"Dev Lim" : 2,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static",
+			"active_flow_controller":1},
+			"3" : {
+				"node" : "B",
+				"Max Setting" : 20,
+				"Correction Factor" : 1,
+				"Dev Lim" : 2,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static",
+			"active_flow_controller":1},
+			"4" : {
+				"node" : "G",
+				"Max Setting" : 20,
+				"Correction Factor" : 1,
+				"Dev Lim" : 2,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static",
+			"active_flow_controller":1},
+			"5" : {
+				"node" : "F",
+				"Max Setting" : 20,
+				"Correction Factor" : 1,
+				"Dev Lim" : 2,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static",
+			"active_flow_controller":1},
+			"6" : {
+				"node" : "C",
+				"Max Setting" : 20,
+				"Correction Factor" : 1,
+				"Dev Lim" : 2,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static",
+			"active_flow_controller":1}},
+		"async":0},
+	"bronkhorst_mfc" : {
+		"port" : "COM3",
+		"baudrate" : 38400,
+		"timeout" : 1,
+		"Flow Wait Time (sec)" : 60,
+		"Subdevices" : {
+		 	"iC4H10" : {
+				"node" : 50,
+				"Max Setting" : 60,
+				"Correction Factor" : 0.7627,
+				"Flow Dev Lim" : 2,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "True","Dynamicity":"Static"},
+			"O2" : {
+				"node" : 40,
+				"Max Setting" : 60,
+				"Correction Factor" : 1.023,
+				"Flow Dev Lim" : 100,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static"},
+			"N2" : {
+				"node" : 30,
+				"Max Setting" : 120,
+				"Correction Factor" : 1.001,
+				"Flow Dev Lim" : 2,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static"},
+			"N2O" : {
+				"node" : 20,
+				"Max Setting" : 20,
+				"Correction Factor" : 1.411,
+				"Flow Dev Lim" : 25,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static"},
+			"H2" : {
+				"node" : 60,
+				"Max Setting" : 120,
+				"Correction Factor" : 2.548,
+				"Flow Dev Lim" : 120,
+			"Analysis Device Type" : "Flow",
+			"Major Reactant" : "False","Dynamicity":"Static"}
+			},
+		"async":0
+		},
+	"vici_valves" : {
+		"port" : "COM4",
+		"baudrate" : 9600,
+		"timeout" : 1,
+		"Wait Time (sec)" : 5, 
+		"Subdevices" : {
+		 	"4-way" : {
+				"node" : 4,
+				"Max Setting" : 999999,
+				"Dev Lim" : 999999,
+			"Analysis Device Type" : "Valve","Dynamicity":"Static"
+			},
+		 	"6-way" : {
+				"node" : 6,
+				"Max Setting" : 999999,
+				"Dev Lim" : 999999,
+			"Analysis Device Type" : "Valve","Dynamicity":"Static"
+			}
+		},
+		"async":0
+	},
+	"vici_valves_8way" : {
+		"port" : "COM7",
+		"baudrate" : 9600,
+		"timeout" : 1,
+		"Wait Time (sec)" : 5, 
+		"Subdevices" : {
+		 	"gc_stream" : {
+				"node" : 0,
+				"Max Setting" : 999999,
+				"Dev Lim" : 999999,
+			"Analysis Device Type" : "Valve","Dynamicity":"Static"
+			}
+		},
+	"async":0}
+}
