@@ -1,17 +1,24 @@
-iterative_catalyst_design
+# *iterative_catalyst_design*
 ==============================
 
 A software package that predicts improved catalysts based on experimental and computational data.
 
 Usage:
 
-(1) Extracting Raw Data
+## (1) Extracting Raw Data
 
-Raw data contains lots of meta-data and reactor operating condition data. The first step is to extract the meaningful data from the raw data. In our case, each reaction has 6 reactors. You can do this for as many reactions as you want to create a dataset. The list of reactions you put should be stored at "./data/raw/Runs_To_Analyze" as a .txt file with a format identical to the ones already there.
+Raw data from our reactors typically contains lots of meta-data such as reactor logs. The first step is to extract the meaningful data from the raw data folders. Some defitions:
+
+* Reaction: One run of the 6-flow system. Data for any given reaction is accessible from ./data/raw/ with each reaction folder named by the reaction ID #.
+* Reactor: One reactor. The 6-flow system has 6 reactors so 1 reaction can contain data from 6 reactors. 
+
+The data for all reactors for a given reaction are stored in a common Excel file in the raw data folder. 
+
+The list of reactions you wish to bring in for a given processed dataset should be stored at "./data/raw/Runs_To_Analyze" as a .txt file with a format identical to the ones already there.
 
 For example:
 
-python ./src/data/make_dataset.py "Round 8 Predictions.txt" Round8-Standardized --cleanup=True --averaging=True
+`python ./src/data/make_dataset.py "Round 8 Predictions.txt" Round8-Standardized --cleanup=True --averaging=True`
 
 will take the file "./data/raw/Runs_To_Analyze/Round 8 Predictions.txt", load in the raw datafiles with folder names listed in that text file and parse through the raw data to create your dataset. 
 
@@ -19,15 +26,15 @@ You should always have --cleanup=True because this eliminates data that, for one
 
 This will produce output files under ./data/processed with the names "1-preprocessed_Round8-Standardized.csv", "2-cleanedup_Round8-Standardized.csv", and "3-averaged_Round8-Standardized.csv." You should use file #2 if you want the individual datapoints (e.g. you are incorporating uncertainty) and file #3 if you are using the averaged datapoints to make predicitons (e.g. if a catalyst was tested 3x the averaged would average the 3 to produce 1 datapoint whereas the cleanedup would report 3 separate datapoints).
 
-(2) Making Predictions
+## (2) Making Predictions
 
 Once you have processed data you can then make predictions by running each model script. Examples are below:
 
-python ./src/models/knn.py "./data/processed/3-averaged_Round8-Standardized.csv" knn-dense-round-9-predictions --grid=dense
+`python ./src/models/knn.py "./data/processed/3-averaged_Round8-Standardized.csv" knn-dense-round-9-predictions --grid=dense`
 
-python ./src/models/gaussian_process.py "./data/processed/3-averaged_Round8-Standardized.csv" gp-dense-round-9-predictions --grid=dense
+`python ./src/models/gaussian_process.py "./data/processed/3-averaged_Round8-Standardized.csv" gp-dense-round-9-predictions --grid=dense`
 
-python ./src/models/gp_white_kernel.py "./data/processed/2-cleanedup_Round8-Standardized.csv" go-white-dense-round-9-predictions --grid=dense
+`python ./src/models/gp_white_kernel.py "./data/processed/2-cleanedup_Round8-Standardized.csv" go-white-dense-round-9-predictions --grid=dense`
 
 All other models in the project can be ignored / aren't supported. knn and gaussian_process used averaged data (file #3 above) whereas gp_white_kernel uses cleaned up data (file #2 above). This will output model predictions at ./models/predictions along with giving you some details in the command line interface. 
 
